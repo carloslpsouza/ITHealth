@@ -1,8 +1,9 @@
+import pygame
 # draw some text into an area of a surface
 # automatically wraps words
 # returns any text that didn't get blitted
 def drawText(surface, text, color, rect, font, aa=False, bkg=None):
-    rect = Rect(rect)
+    rect = pygame.Rect(rect)
     y = rect.top
     lineSpacing = -2
 
@@ -13,15 +14,15 @@ def drawText(surface, text, color, rect, font, aa=False, bkg=None):
         i = 1
 
         # determine if the row of text will be outside our area
-        if y + fontHeight &gt; rect.bottom:
+        if y + fontHeight > rect.bottom:
             break
 
         # determine maximum width of line
-        while font.size(text[:i])[0] &lt; rect.width and i &lt; len(text):
+        while font.size(text[:i])[0] < rect.width and i < len(text):
             i += 1
 
         # if we've wrapped the text, then adjust the wrap to the last word
-        if i &lt; len(text):
+        if i < len(text):
             i = text.rfind(" ", 0, i) + 1
 
         # render the line and blit it to the surface
