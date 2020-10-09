@@ -5,12 +5,11 @@ from pygame.locals import *
 
 global screen
 
-pygame.init()#inicializa todos os modulos do pygame
+pygame.init()  # inicializa todos os modulos do pygame
 
-
-#Variáveis Sprites
+# Variáveis Sprites
 fundo_mapa = pygame.image.load('SPRITES/fundo-mapa-verde.png')
-abertura = pygame.image.load('SPRITES/logo-com-fundo.png')
+abertura = pygame.image.load('SPRITES/logo-inicial.png')
 menu = pygame.image.load('SPRITES/tela-inicial.png')
 tela_nome = pygame.image.load('SPRITES/tela-nome.png')
 q_gd_pergunta = pygame.image.load('SPRITES/quadro-grande-pergunta.png')
@@ -21,24 +20,40 @@ op_c = pygame.image.load('SPRITES/c.png')
 op_d = pygame.image.load('SPRITES/d.png')
 #
 
-#Fontes
-fonte = pygame.font.match_font('FreeSans')#Encontra caminho absoluto fonte no SO
-fonte_padrao = pygame.font.Font(fonte, 30)  # criar um objeto Font a partir das fontes do sistema SysFont (nome, tamanho, negrito = Falso, itálico = Falso)
+# Fontes
+fonte_default = pygame.font.match_font('FreeSans')  # Encontra caminho absoluto fonte no SO
+fonte_dimis = pygame.font.match_font('Dimiss')  # Encontra caminho absoluto fonte no SO
+fonte_dimitri = pygame.font.match_font('Dimitri')  # Encontra caminho absoluto fonte no SO
 fonte_perguntas = pygame.font.Font('FONTES/Roboto/Roboto-Light.ttf', 30)
+#fonte_dimis = pygame.font.Font('FONTES/Dimis/dimis.ttf', 30)
+#fonte_dimitri = pygame.font.Font('FONTES/Dimitri/dimitri.ttf', 30)
 #
 
-#Variaveis de cores
-preto = (0,0,0)
-amarelo = (255,255,0)
-branco = (255,255,255)
+# Variaveis de cores
+preto = (50, 64, 50)
+amarelo = (255, 255, 0)
+branco = (255, 255, 255)
 #
 
-#Variáveis de tela
+# Variáveis de tela
 twidth = 1366
 theight = 768
 #
 
-clock = pygame.time.Clock() # Cria um objeto que ajuda a controlar o tempo
+clock = pygame.time.Clock()  # Cria um objeto que ajuda a controlar o tempo
+
+def musicaFundo():
+    pygame.mixer.init()
+    pygame.mixer.music.load('TRILHA/suspense.mp3')
+    pygame.mixer.music.play(-1)
+    # pygame.mixer.music.set_volume(1)
+
+
+def exibeTexto(txt, tam_fonte, cor, fonte):  # função que facilita a rederização de texto na tela é so passar o texto e o tamanho
+    fonte_padrao = pygame.font.Font(fonte,tam_fonte)  # criar um objeto Font a partir das fontes do sistema SysFont (nome, tamanho, negrito = Falso, itálico = Falso)
+    texto_surface = fonte_padrao.render(txt, False, cor)  # Renderiza o texto passado pelo parametro txt
+    return texto_surface
+
 
 def gameOver(twidth, theight, nomeJogador, pts, tempo):
     global screen
@@ -63,23 +78,13 @@ def gameOver(twidth, theight, nomeJogador, pts, tempo):
 
         screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
         screen.blit(game_over, (0, 0))
-        #screen.blit(exibeTexto(nomeJogador, 25, preto), ((twidth/2), 400))
-        screen.blit(exibeTexto(pts, 50, preto), ((twidth/2)-200, 370))
-        screen.blit(exibeTexto(tempo, 50, preto), ((twidth/2)-200, 430))
+        # screen.blit(exibeTexto(nomeJogador, 25, preto), ((twidth/2), 400))
+        screen.blit(exibeTexto(pts, 55, preto, fonte_dimitri), ((twidth / 2) - 210, 380))
+        screen.blit(exibeTexto(tempo, 55, preto, fonte_dimitri), ((twidth / 2) - 210, 430))
         pygame.display.update()  # Atualiza os retangulos defindos
 
 
 
-def musicaFundo():
-    pygame.mixer.init()
-    pygame.mixer.music.load('TRILHA/suspense.mp3')
-    pygame.mixer.music.play(-1)
-    #pygame.mixer.music.set_volume(1)
-
-def exibeTexto(txt, tam_fonte, cor): #função que facilita a rederização de texto na tela é so passar o texto e o tamanho
-    fonte_padrao = pygame.font.Font(fonte, tam_fonte)#criar um objeto Font a partir das fontes do sistema SysFont (nome, tamanho, negrito = Falso, itálico = Falso)
-    texto_surface = fonte_padrao.render(txt, False, cor)#Renderiza o texto passado pelo parametro txt
-    return texto_surface
 
 def jogo(twidth, theight, nomeJogador):
     # Sangue
@@ -132,18 +137,18 @@ def jogo(twidth, theight, nomeJogador):
             screen.blit(q_gd_pergunta, ((twidth / 2) - 563, 130))
             screen.blit(quadro_pergunta, ((twidth / 2) - 510, 150))
 
-            screen.blit(exibeTexto("Contaminação: ", 25, amarelo), (10, 10))
+            screen.blit(exibeTexto("Contaminação ", 25, amarelo, fonte_dimitri), (10, 10))
 
             for i in sangue:  # imprime na tela 10 unidades de sangue
                 screen.blit(sangue_skin, i)
 
-            screen.blit(exibeTexto(Counter.tempoCorrido(), 25, amarelo), ((twidth / 2) - 100, 10))
+            screen.blit(exibeTexto(Counter.tempoCorrido(), 25, amarelo, fonte_dimitri), ((twidth / 2) - 100, 10))
 
-            screen.blit(exibeTexto("Jogador: ", 25, amarelo), (twidth - 200, 10))
-            screen.blit(exibeTexto(nomeJogador, 25, amarelo), (twidth - 100, 10))
+            screen.blit(exibeTexto("Jogador   ", 25, amarelo, fonte_dimitri), (twidth - 200, 10))
+            screen.blit(exibeTexto(nomeJogador, 25, amarelo, fonte_dimitri), (twidth - 100, 10))
 
-            pts = ("Pontos: " + str(pontos))
-            screen.blit(exibeTexto(pts, 25, amarelo), (twidth - 200, 50))
+            pts = ("Pontos " + str(pontos))
+            screen.blit(exibeTexto(pts, 25, amarelo, fonte_dimitri), (twidth - 200, 50))
 
             quebraLinha.drawText(quadro_pergunta, pergunta1, preto, bloco, fonte_perguntas)
 
@@ -152,7 +157,7 @@ def jogo(twidth, theight, nomeJogador):
             screen.blit(op_c, (740, 500))
             screen.blit(op_d, (1040, 500))
         else:  # Apaga tudo e exibe o Game over
-            gameOver(1366,768, nomeJogador, pts, Counter.tempoCorrido())
+            gameOver(1366, 768, nomeJogador, pts, Counter.tempoCorrido())
 
         pygame.display.update()  # Atualiza os retangulos defindos
 
@@ -172,16 +177,15 @@ def planMenu(twidth, theight, nomeJogador):
 
         if event.type == MOUSEBUTTONDOWN:  # Pega o evento de clique no botão
             pos = pygame.mouse.get_pos()  # Pega a posição onde o mouse clica
-            #print(pos)
+            # print(pos)
 
             if 1200 > pos[0] > 800 and 450 > pos[1] > 380:  # Testa se o clique foi no indicado
                 saiMenu = False
 
-
         screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
         screen.blit(menu, (0, 0))
 
-        print(nomeJogador)
+        #print(nomeJogador)
 
         pygame.display.update()  # Atualiza os retangulos defindos
 
@@ -207,12 +211,10 @@ def jogador(twidth, theight):
                 if event.key == pygame.K_RETURN:
                     saiNome = False
 
-
         screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
         screen.blit(tela_nome, (0, 0))
 
-        screen.blit(exibeTexto(userName, 50, preto), ((twidth/2)-400,(theight/2)-70))
-
+        screen.blit(exibeTexto(userName, 50, preto, fonte_dimitri), ((twidth / 2) - 400, (theight / 2) - 60))
 
         pygame.display.update()  # Atualiza os retangulos defindos
 
@@ -231,11 +233,13 @@ def entrada(twidth, theight):
                 pygame.quit()
                 sys.exit()
 
-        screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
+        screen.fill(
+            preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
         screen.blit(abertura, (0, 0))
         pygame.display.update()  # Atualiza os retangulos defindos
         pygame.time.wait(1500)
         saiEntrada = False
     jogador(1366, 768)
 
-entrada(600,600)
+
+entrada(1366,768)
