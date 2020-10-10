@@ -1,14 +1,18 @@
 import pygame, sys
 import quebraLinha
-import Counter
+import threading
 from pygame.locals import *
+import webbrowser
 
 global screen
+global event
+global mus_menu
 
 pygame.init()  # inicializa todos os modulos do pygame
+pygame.mixer.init() # inicia métodos de som
 
 # Variáveis Sprites
-fundo_mapa = pygame.image.load('SPRITES/fundo-mapa-verde.png')
+fundo_mapa = pygame.image.load('SPRITES/fundo-menu.png')
 abertura = pygame.image.load('SPRITES/logo-inicial.png')
 menu = pygame.image.load('SPRITES/tela-inicial.png')
 tela_nome = pygame.image.load('SPRITES/tela-nome.png')
@@ -18,6 +22,14 @@ op_a = pygame.image.load('SPRITES/a.png')
 op_b = pygame.image.load('SPRITES/b.png')
 op_c = pygame.image.load('SPRITES/c.png')
 op_d = pygame.image.load('SPRITES/d.png')
+virus = pygame.image.load('SPRITES/virus.png')
+virus_barra = pygame.image.load('SPRITES/virus-barra-pq.png')
+sg_verde = pygame.image.load('SPRITES/sangue-verde.png')
+sg_am = pygame.image.load('SPRITES/sangue-amarelo.png')
+sg_verm = pygame.image.load('SPRITES/sangue-vermelho.png')
+sgvdam = pygame.image.load('SPRITES/sangue-verde-amarelo.png')
+sgamvm = pygame.image.load('SPRITES/sangue-amarelo-vermelho.png')
+
 #
 
 # Fontes
@@ -42,9 +54,12 @@ theight = 768
 
 clock = pygame.time.Clock()  # Cria um objeto que ajuda a controlar o tempo
 
-def musicaFundo():
-    pygame.mixer.init()
-    pygame.mixer.music.load('TRILHA/suspense.mp3')
+# Variáveis efeitos
+selecao = pygame.mixer.Sound('TRILHA/tiro.wav')
+#
+
+def musicaFundo(trilha):
+    pygame.mixer.music.load(trilha)
     pygame.mixer.music.play(-1)
     # pygame.mixer.music.set_volume(1)
 
@@ -56,9 +71,11 @@ def exibeTexto(txt, tam_fonte, cor, fonte):  # função que facilita a rederiza�
 
 
 def gameOver(twidth, theight, nomeJogador, pts, tempo):
-    global screen
+    global screen, event
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
+
+    musicaFundo('TRILHA/sad.wav')
 
     saiGame = True
     while saiGame:
@@ -70,11 +87,18 @@ def gameOver(twidth, theight, nomeJogador, pts, tempo):
 
         if event.type == MOUSEBUTTONDOWN:  # Pega o evento de clique no botão
             pos = pygame.mouse.get_pos()  # Pega a posição onde o mouse clica
-            print(pos)
+            #print(pos)
 
-            if 1200 > pos[0] > 800 and 450 > pos[1] > 380:  # Testa se o clique foi no indicado
+            if 920 > pos[0] > 420 and 720 > pos[1] > 650:  # Testa se o clique foi no indicado
                 saiGame = False
                 jogo(1366, 768, nomeJogador)
+
+            if 640 > pos[0] > 240 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado
+                saiGame = False
+                jogador(1366, 768)
+            if 1120 > pos[0] > 730 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado
+                pygame.quit()
+                sys.exit()
 
         screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
         screen.blit(game_over, (0, 0))
@@ -87,24 +111,25 @@ def gameOver(twidth, theight, nomeJogador, pts, tempo):
 
 
 def jogo(twidth, theight, nomeJogador):
+    import Counter
+    global screen, event
     # Sangue
-    s_ini = 180
-    s_tam = 30
-    sangue = [(s_ini, 15), (s_ini + s_tam, 15), (s_ini + (2 * s_tam), 15), (s_ini + (3 * s_tam), 15),
-              (s_ini + (4 * s_tam), 15), (s_ini + (5 * s_tam), 15), (s_ini + (6 * s_tam), 15),
-              (s_ini + (7 * s_tam), 15), (s_ini + (8 * s_tam), 15), (s_ini + (9 * s_tam), 15)]
-    sangue_skin = pygame.Surface((s_tam, 20))  # representa a largura e altura de cada bloco
-    sangue_skin.fill((255, 255, 0))  # cor do bloco
+    yp = 34
+    s_ini = 110
+    s_tam = 43
+    sangue_skin = pygame.Surface((s_tam, 32))  # representa a largura e altura de cada bloco
+    sangue = []
     #
 
-    pontos_contaminacao = 100
+    pontos_contaminacao = 0
     pontos = 0
     pergunta1 = "Por mais de 3 mil anos a Varíola atormentou a humanidade, existem relatos históricos que apontam vestígios do vírus no Faraó Ramsés V (Falecido em 1145 AC). Qual foi o primeiro método eficaz na imunização do Vírus?"
 
-    musicaFundo()
+    musicaFundo('TRILHA/suspense.mp3')
 
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
+
     # tratamento quebra de linha
     quadro_pergunta = pygame.Surface((900, 290), pygame.SRCALPHA, 32)  # cria um quadro onde serão exibidas as perguntas
     quadro_pergunta = quadro_pergunta.convert_alpha()  # Converte a superficie quadro branco para transparente
@@ -120,27 +145,42 @@ def jogo(twidth, theight, nomeJogador):
 
         if event.type == MOUSEBUTTONDOWN:  # Pega o evento de clique no botão
             pos = pygame.mouse.get_pos()  # Pega a posição onde o mouse clica
-            print(pos)
+            #print(pos)
 
-            if 320 > pos[0] > 150 and 600 > pos[1] > 500:  # Testa se o clique foi no indicado
-                sangue.pop()
-                pontos_contaminacao -= 10  # retira 10 pontos a cada erro
-                print(pontos_contaminacao)
+            if 320 > pos[0] > 120 and 600 > pos[1] > 500:  # Testa se o clique foi no indicado
+                pontos_contaminacao += 10  # retira 10 pontos a cada erro
+                sangue.append(s_tam)
+                #print(pontos_contaminacao)
 
-            if 640 > pos[0] > 540 and 600 > pos[1] > 500:  # Testa se o clique foi no indicado
+            if 640 > pos[0] > 440 and 600 > pos[1] > 500:  # Testa se o clique foi no indicado
                 pontos += 5  # Soma pontos a cada acerto
 
-        if pontos_contaminacao > 0:  # testa se ainda tem pontos e exibe o jogo
-            screen.fill(
-                preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
+        if pontos_contaminacao < 101:  # testa se ainda tem pontos e exibe o jogo
+            screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
             screen.blit(fundo_mapa, (0, 0))
             screen.blit(q_gd_pergunta, ((twidth / 2) - 563, 130))
             screen.blit(quadro_pergunta, ((twidth / 2) - 510, 150))
 
-            screen.blit(exibeTexto("Contaminação ", 25, amarelo, fonte_dimitri), (10, 10))
-
-            for i in sangue:  # imprime na tela 10 unidades de sangue
-                screen.blit(sangue_skin, i)
+            screen.blit(virus, (10, 10))
+            screen.blit(virus_barra, (106, 30))
+            mem = 0
+            for i in range(len(sangue)):  # imprime na tela 10 unidades de sangue
+                if pontos_contaminacao < 20:
+                    sangue_skin.fill((26, 140, 0))  # cor do bloco
+                elif 20 < pontos_contaminacao < 40:
+                    sangue_skin.fill((60, 130, 44))  # cor do bloco
+                elif 40 < pontos_contaminacao < 60:
+                    sangue_skin.fill((255, 140, 0))  # cor do bloco
+                elif 60 < pontos_contaminacao < 80:
+                    sangue_skin.fill((255,90,0))  # cor do bloco
+                elif 80 < pontos_contaminacao:
+                    sangue_skin.fill((255, 0, 0))  # cor do bloco
+                if i == 0:
+                    screen.blit(sangue_skin, (s_ini, yp))
+                    mem = s_ini
+                else:
+                    mem += s_tam
+                    screen.blit(sangue_skin, (i + mem, yp))
 
             screen.blit(exibeTexto(Counter.tempoCorrido(), 25, amarelo, fonte_dimitri), ((twidth / 2) - 100, 10))
 
@@ -163,7 +203,7 @@ def jogo(twidth, theight, nomeJogador):
 
 
 def planMenu(twidth, theight, nomeJogador):
-    global screen
+    global screen, event, mus_menu
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
 
@@ -177,23 +217,33 @@ def planMenu(twidth, theight, nomeJogador):
 
         if event.type == MOUSEBUTTONDOWN:  # Pega o evento de clique no botão
             pos = pygame.mouse.get_pos()  # Pega a posição onde o mouse clica
-            # print(pos)
+            #print(pos)
 
             if 1200 > pos[0] > 800 and 450 > pos[1] > 380:  # Testa se o clique foi no indicado
+                selecao.play()
+                pygame.time.wait(500)
                 saiMenu = False
+
+            if 1200 > pos[0] > 800 and 560 > pos[1] > 480:  # Testa se o clique foi no indicado
+                selecao.play()
+                webbrowser.open('https://github.com/carloslpsouza/ITHealth')
+
+            if 1200 > pos[0] > 800 and 680 > pos[1] > 600:  # Testa se o clique foi no indicado
+                selecao.play()
+                webbrowser.open('https://github.com/carloslpsouza/ITHealth')
 
         screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
         screen.blit(menu, (0, 0))
 
-        #print(nomeJogador)
-
         pygame.display.update()  # Atualiza os retangulos defindos
-
+    mus_menu._stop()
     jogo(1366, 768, nomeJogador)
 
 
 def jogador(twidth, theight):
-    global screen
+    global screen, event, mus_menu
+    mus_menu = threading.Thread(target=musicaFundo, args=('TRILHA/awesomeness.wav', ))
+    mus_menu.start()
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
 
@@ -209,6 +259,8 @@ def jogador(twidth, theight):
                 userName += event.unicode
                 nomeJogador = userName[:-1]
                 if event.key == pygame.K_RETURN:
+                    selecao.play()
+                    pygame.time.wait(1000)
                     saiNome = False
 
         screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
@@ -222,7 +274,7 @@ def jogador(twidth, theight):
 
 
 def entrada(twidth, theight):
-    global screen
+    global screen, event
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
     saiEntrada = True
@@ -233,11 +285,10 @@ def entrada(twidth, theight):
                 pygame.quit()
                 sys.exit()
 
-        screen.fill(
-            preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
+        screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
         screen.blit(abertura, (0, 0))
         pygame.display.update()  # Atualiza os retangulos defindos
-        pygame.time.wait(1500)
+        pygame.time.wait(2000)
         saiEntrada = False
     jogador(1366, 768)
 
