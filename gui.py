@@ -295,8 +295,11 @@ def jogador(twidth, theight):
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                userName += event.unicode
-                nomeJogador = userName[:-1]
+                if event.key == pygame.K_BACKSPACE:
+                    userName = userName[:-1]
+                else:
+                    userName += event.unicode
+                    nomeJogador = userName[:-1]
                 if event.key == pygame.K_RETURN:
                     selecao.play()
                     pygame.time.wait(1000)
