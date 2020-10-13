@@ -2,14 +2,23 @@ import pygame, sys
 import quebraLinha
 import threading
 from pygame.locals import *
+from perguntas import *
 import webbrowser
 
 global screen
 global event
 global mus_menu
+global fps
+global pts
 
 pygame.init()  # inicializa todos os modulos do pygame
 pygame.mixer.init() # inicia métodos de som
+
+fps = 6
+randon = aleatorio()
+sangue = []
+
+print(randon)
 
 # Variáveis Sprites
 fundo_mapa = pygame.image.load('SPRITES/fundo-menu.png')
@@ -71,7 +80,7 @@ def exibeTexto(txt, tam_fonte, cor, fonte):  # função que facilita a rederiza�
 
 
 def gameOver(twidth, theight, nomeJogador, pts, tempo):
-    global screen, event
+    global screen, event, fps
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
 
@@ -79,7 +88,7 @@ def gameOver(twidth, theight, nomeJogador, pts, tempo):
 
     saiGame = True
     while saiGame:
-        clock.tick(5)  # Método tick() conta o tempo da ultima chamada serve para reduzir fps
+        clock.tick(fps)  # Método tick() conta o tempo da ultima chamada serve para reduzir fps
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -102,7 +111,6 @@ def gameOver(twidth, theight, nomeJogador, pts, tempo):
 
         screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
         screen.blit(game_over, (0, 0))
-        # screen.blit(exibeTexto(nomeJogador, 25, preto), ((twidth/2), 400))
         screen.blit(exibeTexto(pts, 55, preto, fonte_dimitri), ((twidth / 2) - 210, 380))
         screen.blit(exibeTexto(tempo, 55, preto, fonte_dimitri), ((twidth / 2) - 210, 430))
         pygame.display.update()  # Atualiza os retangulos defindos
@@ -110,20 +118,18 @@ def gameOver(twidth, theight, nomeJogador, pts, tempo):
 
 
 
-def jogo(twidth, theight, nomeJogador):
+def jogo(twidth, theight, nomeJogador, contador, pontos, pontos_contaminacao = 0):
     import Counter
-    global screen, event
+    global screen, event, fps, pts
+
+    opcoes = ['A', 'B', 'C', 'D']
+
     # Sangue
     yp = 34
     s_ini = 110
     s_tam = 43
     sangue_skin = pygame.Surface((s_tam, 32))  # representa a largura e altura de cada bloco
-    sangue = []
     #
-
-    pontos_contaminacao = 0
-    pontos = 0
-    pergunta1 = "Por mais de 3 mil anos a Varíola atormentou a humanidade, existem relatos históricos que apontam vestígios do vírus no Faraó Ramsés V (Falecido em 1145 AC). Qual foi o primeiro método eficaz na imunização do Vírus?"
 
     musicaFundo('TRILHA/suspense.mp3')
 
@@ -136,8 +142,12 @@ def jogo(twidth, theight, nomeJogador):
     bloco = pygame.Rect(5, 5, 900, 290)  # Função textWrap pede como paramentro
     #
 
+    resposta = ""
     while True:
-        clock.tick(5)  # Método tick() conta o tempo da ultima chamada serve para reduzir fps
+        clock.tick(fps)  # Método tick() conta o tempo da ultima chamada serve para reduzir fps
+        if contador == len(randon):
+            print("Vc ganhou")
+            entrada(1366,768)
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -145,15 +155,20 @@ def jogo(twidth, theight, nomeJogador):
 
         if event.type == MOUSEBUTTONDOWN:  # Pega o evento de clique no botão
             pos = pygame.mouse.get_pos()  # Pega a posição onde o mouse clica
+            pygame.time.wait(500)
             #print(pos)
-
-            if 320 > pos[0] > 120 and 600 > pos[1] > 500:  # Testa se o clique foi no indicado
-                pontos_contaminacao += 10  # retira 10 pontos a cada erro
-                sangue.append(s_tam)
-                #print(pontos_contaminacao)
-
-            if 640 > pos[0] > 440 and 600 > pos[1] > 500:  # Testa se o clique foi no indicado
-                pontos += 5  # Soma pontos a cada acerto
+            opc_a = 320 > pos[0] > 120 and 600 > pos[1] > 500
+            opc_b = 640 > pos[0] > 440 and 600 > pos[1] > 500
+            opc_c = 940 > pos[0] > 740 and 600 > pos[1] > 500
+            opc_d = 1240 > pos[0] > 1040 and 600 > pos[1] > 500
+            if opc_a:  # Testa se o clique foi no indicado
+                resposta = 'A'
+            if opc_b:  # Testa se o clique foi no indicado
+                resposta = 'B'
+            if opc_c:  # Testa se o clique foi no indicado
+                resposta = 'C'
+            if opc_d:  # Testa se o clique foi no indicado
+                resposta = 'D'
 
         if pontos_contaminacao < 101:  # testa se ainda tem pontos e exibe o jogo
             screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
@@ -163,8 +178,10 @@ def jogo(twidth, theight, nomeJogador):
 
             screen.blit(virus, (10, 10))
             screen.blit(virus_barra, (106, 30))
+
             mem = 0
-            for i in range(len(sangue)):  # imprime na tela 10 unidades de sangue
+            for j in range(len(sangue)):  # imprime na tela 10 unidades de sangue
+                #print(j)
                 if pontos_contaminacao < 20:
                     sangue_skin.fill((26, 140, 0))  # cor do bloco
                 elif 20 < pontos_contaminacao < 40:
@@ -175,12 +192,12 @@ def jogo(twidth, theight, nomeJogador):
                     sangue_skin.fill((255,90,0))  # cor do bloco
                 elif 80 < pontos_contaminacao:
                     sangue_skin.fill((255, 0, 0))  # cor do bloco
-                if i == 0:
+                if j == 0:
                     screen.blit(sangue_skin, (s_ini, yp))
                     mem = s_ini
                 else:
                     mem += s_tam
-                    screen.blit(sangue_skin, (i + mem, yp))
+                    screen.blit(sangue_skin, (j + mem, yp))
 
             screen.blit(exibeTexto(Counter.tempoCorrido(), 25, amarelo, fonte_dimitri), ((twidth / 2) - 100, 10))
 
@@ -190,12 +207,34 @@ def jogo(twidth, theight, nomeJogador):
             pts = ("Pontos " + str(pontos))
             screen.blit(exibeTexto(pts, 25, amarelo, fonte_dimitri), (twidth - 200, 50))
 
-            quebraLinha.drawText(quadro_pergunta, pergunta1, preto, bloco, fonte_perguntas)
-
             screen.blit(op_a, (120, 500))
             screen.blit(op_b, (440, 500))
             screen.blit(op_c, (740, 500))
             screen.blit(op_d, (1040, 500))
+
+            pergunta = selecionaQuestao(randon[contador] * 7)
+
+            print(mem, s_ini, s_tam)
+            quebraLinha.drawText(quadro_pergunta, pergunta[0], preto, bloco, fonte_perguntas)
+            if pergunta[6] in opcoes:
+                opcoes.remove(str(pergunta[6]))
+            if resposta == pergunta[6]:
+                print("certa resposta")
+                contador += 1
+                pontos += int(pergunta[5])
+                jogo(1366, 768, nomeJogador, contador, pontos, pontos_contaminacao)
+
+            if resposta in opcoes:
+                print('Errada')
+                sangue.append(s_tam)
+                contador += 1
+                pontos_contaminacao += 10
+                pygame.display.update()
+                jogo(1366, 768, nomeJogador, contador, pontos, pontos_contaminacao)
+
+            resposta = ""
+            #print(pontos_contaminacao)
+
         else:  # Apaga tudo e exibe o Game over
             gameOver(1366, 768, nomeJogador, pts, Counter.tempoCorrido())
 
@@ -203,13 +242,13 @@ def jogo(twidth, theight, nomeJogador):
 
 
 def planMenu(twidth, theight, nomeJogador):
-    global screen, event, mus_menu
+    global screen, event, mus_menu, fps
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
 
     saiMenu = True
     while saiMenu:
-        clock.tick(5)  # Método tick() conta o tempo da ultima chamada serve para reduzir fps
+        clock.tick(fps)  # Método tick() conta o tempo da ultima chamada serve para reduzir fps
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -237,11 +276,11 @@ def planMenu(twidth, theight, nomeJogador):
 
         pygame.display.update()  # Atualiza os retangulos defindos
     mus_menu._stop()
-    jogo(1366, 768, nomeJogador)
+    jogo(1366, 768, nomeJogador, 0, 0, 0)
 
 
 def jogador(twidth, theight):
-    global screen, event, mus_menu
+    global screen, event, mus_menu, fps
     mus_menu = threading.Thread(target=musicaFundo, args=('TRILHA/awesomeness.wav', ))
     mus_menu.start()
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
@@ -250,7 +289,7 @@ def jogador(twidth, theight):
     userName = ""
     saiNome = True
     while saiNome:
-        clock.tick(5)  # Método tick() conta o tempo da ultima chamada serve para reduzir fps
+        clock.tick(fps)  # Método tick() conta o tempo da ultima chamada serve para reduzir fps
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -274,12 +313,12 @@ def jogador(twidth, theight):
 
 
 def entrada(twidth, theight):
-    global screen, event
+    global screen, event, fps
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
     saiEntrada = True
     while saiEntrada:
-        clock.tick(5)  # Método tick() conta o tempo da ultima chamada serve para reduzir fps
+        clock.tick(fps)  # Método tick() conta o tempo da ultima chamada serve para reduzir fps
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
