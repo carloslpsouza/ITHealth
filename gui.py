@@ -10,13 +10,16 @@ global event
 global mus_menu
 global fps
 global pts
+global s_tam
+global sangue_skin
 
 pygame.init()  # inicializa todos os modulos do pygame
 pygame.mixer.init() # inicia métodos de som
 
 fps = 6
 randon = aleatorio()
-sangue = []
+s_tam = 0
+sangue_skin = pygame.Surface((0, 32))
 
 print(randon)
 
@@ -104,7 +107,8 @@ def gameOver(twidth, theight, nomeJogador, pts, tempo):
 
             if 640 > pos[0] > 240 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado
                 saiGame = False
-                jogador(1366, 768)
+                jogador(1366, 768, )
+
             if 1120 > pos[0] > 730 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado
                 pygame.quit()
                 sys.exit()
@@ -118,17 +122,15 @@ def gameOver(twidth, theight, nomeJogador, pts, tempo):
 
 
 
-def jogo(twidth, theight, nomeJogador, contador, pontos, pontos_contaminacao = 0):
+def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contaminacao = 0):
     import Counter
-    global screen, event, fps, pts
+    global screen, event, fps, pts, s_tam, sangue_skin
 
     opcoes = ['A', 'B', 'C', 'D']
 
     # Sangue
     yp = 34
     s_ini = 110
-    s_tam = 43
-    sangue_skin = pygame.Surface((s_tam, 32))  # representa a largura e altura de cada bloco
     #
 
     musicaFundo('TRILHA/suspense.mp3')
@@ -145,9 +147,12 @@ def jogo(twidth, theight, nomeJogador, contador, pontos, pontos_contaminacao = 0
     resposta = ""
     while True:
         clock.tick(fps)  # Método tick() conta o tempo da ultima chamada serve para reduzir fps
+
         if contador == len(randon):
             print("Vc ganhou")
+            s_tam = 0
             entrada(1366,768)
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -173,31 +178,34 @@ def jogo(twidth, theight, nomeJogador, contador, pontos, pontos_contaminacao = 0
         if pontos_contaminacao < 101:  # testa se ainda tem pontos e exibe o jogo
             screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
             screen.blit(fundo_mapa, (0, 0))
+
             screen.blit(q_gd_pergunta, ((twidth / 2) - 563, 130))
             screen.blit(quadro_pergunta, ((twidth / 2) - 510, 150))
 
             screen.blit(virus, (10, 10))
             screen.blit(virus_barra, (106, 30))
 
-            mem = 0
-            for j in range(len(sangue)):  # imprime na tela 10 unidades de sangue
-                #print(j)
-                if pontos_contaminacao < 20:
-                    sangue_skin.fill((26, 140, 0))  # cor do bloco
-                elif 20 < pontos_contaminacao < 40:
-                    sangue_skin.fill((60, 130, 44))  # cor do bloco
-                elif 40 < pontos_contaminacao < 60:
-                    sangue_skin.fill((255, 140, 0))  # cor do bloco
-                elif 60 < pontos_contaminacao < 80:
-                    sangue_skin.fill((255,90,0))  # cor do bloco
-                elif 80 < pontos_contaminacao:
-                    sangue_skin.fill((255, 0, 0))  # cor do bloco
-                if j == 0:
-                    screen.blit(sangue_skin, (s_ini, yp))
-                    mem = s_ini
-                else:
-                    mem += s_tam
-                    screen.blit(sangue_skin, (j + mem, yp))
+            sangue_skin = pygame.Surface((s_tam, 32))
+
+            if pontos_contaminacao <= 20:
+                sangue_skin.fill((26,140,0))  # cor do bloco
+            elif 20 < pontos_contaminacao <= 30:
+                sangue_skin.fill((140, 140, 0))  # cor do bloco
+            elif 30 < pontos_contaminacao <= 40:
+                sangue_skin.fill((190, 190, 0))  # cor do bloco
+            elif 40 < pontos_contaminacao <= 50:
+                sangue_skin.fill((255, 255, 0))  # cor do bloco
+            elif 50 < pontos_contaminacao <= 60:
+                sangue_skin.fill((255, 145, 0))  # cor do bloco
+            elif 60 < pontos_contaminacao <= 70:
+                sangue_skin.fill((255, 90, 0))  # cor do bloco
+            elif 70 < pontos_contaminacao <= 80:
+                sangue_skin.fill((255, 130, 0))  # cor do bloco
+            elif 80 < pontos_contaminacao:
+                sangue_skin.fill((255, 0, 0))  # cor do bloco
+
+            screen.blit(sangue_skin, (s_ini, yp))
+
 
             screen.blit(exibeTexto(Counter.tempoCorrido(), 25, amarelo, fonte_dimitri), ((twidth / 2) - 100, 10))
 
@@ -214,7 +222,7 @@ def jogo(twidth, theight, nomeJogador, contador, pontos, pontos_contaminacao = 0
 
             pergunta = selecionaQuestao(randon[contador] * 7)
 
-            print(mem, s_ini, s_tam)
+            #print("Memoria", int(s_tam),"Contaminação", int(pontos_contaminacao))
             quebraLinha.drawText(quadro_pergunta, pergunta[0], preto, bloco, fonte_perguntas)
             if pergunta[6] in opcoes:
                 opcoes.remove(str(pergunta[6]))
@@ -226,9 +234,10 @@ def jogo(twidth, theight, nomeJogador, contador, pontos, pontos_contaminacao = 0
 
             if resposta in opcoes:
                 print('Errada')
-                sangue.append(s_tam)
                 contador += 1
+                s_tam += 43
                 pontos_contaminacao += 10
+
                 pygame.display.update()
                 jogo(1366, 768, nomeJogador, contador, pontos, pontos_contaminacao)
 
@@ -236,6 +245,7 @@ def jogo(twidth, theight, nomeJogador, contador, pontos, pontos_contaminacao = 0
             #print(pontos_contaminacao)
 
         else:  # Apaga tudo e exibe o Game over
+            s_tam = 0
             gameOver(1366, 768, nomeJogador, pts, Counter.tempoCorrido())
 
         pygame.display.update()  # Atualiza os retangulos defindos
