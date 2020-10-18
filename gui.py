@@ -1,5 +1,6 @@
 import pygame, sys
 import quebraLinha
+import ranking
 import threading
 from pygame.locals import *
 from perguntas import *
@@ -30,18 +31,13 @@ menu = pygame.image.load('SPRITES/tela-inicial.png')
 tela_nome = pygame.image.load('SPRITES/tela-nome.png')
 q_gd_pergunta = pygame.image.load('SPRITES/quadro-grande-pergunta.png')
 game_over = pygame.image.load('SPRITES/game-over.png')
+imgvitoria = pygame.image.load('SPRITES/tela-vitoria.png')
 op_a = pygame.image.load('SPRITES/a.png')
 op_b = pygame.image.load('SPRITES/b.png')
 op_c = pygame.image.load('SPRITES/c.png')
 op_d = pygame.image.load('SPRITES/d.png')
 virus = pygame.image.load('SPRITES/virus.png')
 virus_barra = pygame.image.load('SPRITES/virus-barra-pq.png')
-sg_verde = pygame.image.load('SPRITES/sangue-verde.png')
-sg_am = pygame.image.load('SPRITES/sangue-amarelo.png')
-sg_verm = pygame.image.load('SPRITES/sangue-vermelho.png')
-sgvdam = pygame.image.load('SPRITES/sangue-verde-amarelo.png')
-sgamvm = pygame.image.load('SPRITES/sangue-amarelo-vermelho.png')
-
 #
 
 # Fontes
@@ -49,6 +45,7 @@ fonte_default = pygame.font.match_font('FreeSans')  # Encontra caminho absoluto 
 fonte_dimis = pygame.font.match_font('Dimiss')  # Encontra caminho absoluto fonte no SO
 fonte_dimitri = pygame.font.match_font('Dimitri')  # Encontra caminho absoluto fonte no SO
 fonte_perguntas = pygame.font.Font('FONTES/Roboto/Roboto-Light.ttf', 30)
+fonte_ranking = pygame.font.Font(fonte_dimitri, 45)
 #fonte_dimis = pygame.font.Font('FONTES/Dimis/dimis.ttf', 30)
 #fonte_dimitri = pygame.font.Font('FONTES/Dimitri/dimitri.ttf', 30)
 #
@@ -81,6 +78,42 @@ def exibeTexto(txt, tam_fonte, cor, fonte):  # função que facilita a rederiza�
     texto_surface = fonte_padrao.render(txt, False, cor)  # Renderiza o texto passado pelo parametro txt
     return texto_surface
 
+def vitoria(twidth, theight, nomeJogador, pts, tempo):
+    global screen, event, fps
+    screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
+    pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
+
+    musicaFundo('TRILHA/sad.wav')
+
+    saiGame = True
+    while saiGame:
+        clock.tick(fps)  # Método tick() conta o tempo da ultima chamada serve para reduzir fps
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+
+        if event.type == MOUSEBUTTONDOWN:  # Pega o evento de clique no botão
+            pos = pygame.mouse.get_pos()  # Pega a posição onde o mouse clica
+            #print(pos)
+
+            if 920 > pos[0] > 420 and 720 > pos[1] > 650:  # Testa se o clique foi no indicado
+                saiGame = False
+                jogo(1366, 768, nomeJogador)
+
+            if 640 > pos[0] > 240 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado
+                saiGame = False
+                jogador(1366, 768, )
+
+            if 1120 > pos[0] > 730 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado
+                pygame.quit()
+                sys.exit()
+
+        screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
+        screen.blit(imgvitoria, (0, 0))
+        screen.blit(exibeTexto(pts, 55, preto, fonte_dimitri), ((twidth / 2) - 210, 380))
+        screen.blit(exibeTexto(tempo, 55, preto, fonte_dimitri), ((twidth / 2) - 210, 430))
+        pygame.display.update()  # Atualiza os retangulos defindos
 
 def gameOver(twidth, theight, nomeJogador, pts, tempo):
     global screen, event, fps
@@ -151,7 +184,9 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
         if contador == len(randon):
             print("Vc ganhou")
             s_tam = 0
-            entrada(1366,768)
+            tempo = Counter.tempoCorrido()
+            ranking.atualizaRanking(nomeJogador, tempo[8:], pontos)
+            vitoria(1366, 768, nomeJogador, pts, Counter.tempoCorrido())
 
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -246,6 +281,8 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
 
         else:  # Apaga tudo e exibe o Game over
             s_tam = 0
+            tempo = Counter.tempoCorrido()
+            ranking.atualizaRanking(nomeJogador, tempo[8:], pontos)
             gameOver(1366, 768, nomeJogador, pts, Counter.tempoCorrido())
 
         pygame.display.update()  # Atualiza os retangulos defindos
@@ -255,6 +292,12 @@ def planMenu(twidth, theight, nomeJogador):
     global screen, event, mus_menu, fps
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
+
+    #quadro ranking
+    quadro_ranking = pygame.Surface((200, 290), pygame.SRCALPHA, 32)
+    quadro_ranking = quadro_ranking.convert_alpha()
+    bloco_ranking = pygame.Rect(5, 5, 200, 290)
+    #
 
     saiMenu = True
     while saiMenu:
@@ -283,6 +326,16 @@ def planMenu(twidth, theight, nomeJogador):
 
         screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
         screen.blit(menu, (0, 0))
+        rankingArray = ranking.leRanking()
+        mem = 0
+        for i in range(3):
+            indice = (i * 3)
+            rankpts = rankingArray[indice]
+            ranknome = rankingArray[indice + 1]
+            ranktempo = rankingArray[indice + 2]
+            ranksai = str(ranknome[:-1] + "   " + rankpts[:-1] + "   " + ranktempo[:-1])
+            screen.blit(exibeTexto(ranksai, 45, preto, fonte_dimitri), ((twidth / 2) - 530, 300 + mem))
+            mem += 100
 
         pygame.display.update()  # Atualiza os retangulos defindos
     mus_menu._stop()
