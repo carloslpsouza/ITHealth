@@ -9,6 +9,7 @@ import webbrowser
 global screen
 global event
 global mus_menu
+global mus_jogo
 global fps
 global pts
 global s_tam
@@ -44,7 +45,7 @@ virus_barra = pygame.image.load('SPRITES/virus-barra-pq.png')
 fonte_default = pygame.font.match_font('FreeSans')  # Encontra caminho absoluto fonte no SO
 fonte_dimis = pygame.font.match_font('Dimiss')  # Encontra caminho absoluto fonte no SO
 fonte_dimitri = pygame.font.match_font('Dimitri')  # Encontra caminho absoluto fonte no SO
-fonte_perguntas = pygame.font.Font('FONTES/Roboto/Roboto-Light.ttf', 30)
+fonte_perguntas = pygame.font.Font('FONTES/Roboto/Roboto-Light.ttf', 28)
 fonte_ranking = pygame.font.Font(fonte_dimitri, 45)
 #fonte_dimis = pygame.font.Font('FONTES/Dimis/dimis.ttf', 30)
 #fonte_dimitri = pygame.font.Font('FONTES/Dimitri/dimitri.ttf', 30)
@@ -65,6 +66,8 @@ clock = pygame.time.Clock()  # Cria um objeto que ajuda a controlar o tempo
 
 # Variáveis efeitos
 selecao = pygame.mixer.Sound('TRILHA/tiro.wav')
+certa = pygame.mixer.Sound('TRILHA/certa.wav')
+errada = pygame.mixer.Sound('TRILHA/no-no-no.wav')
 #
 
 def musicaFundo(trilha):
@@ -83,7 +86,7 @@ def vitoria(twidth, theight, nomeJogador, pts, tempo):
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
 
-    musicaFundo('TRILHA/sad.wav')
+    musicaFundo('TRILHA/redhot.mp3')
 
     saiGame = True
     while saiGame:
@@ -157,7 +160,7 @@ def gameOver(twidth, theight, nomeJogador, pts, tempo):
 
 def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contaminacao = 0):
     import Counter
-    global screen, event, fps, pts, s_tam, sangue_skin
+    global screen, event, fps, pts, s_tam, sangue_skin, mus_jogo
 
     opcoes = ['A', 'B', 'C', 'D']
 
@@ -166,15 +169,29 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
     s_ini = 110
     #
 
-    musicaFundo('TRILHA/suspense.mp3')
-
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
 
     # tratamento quebra de linha
-    quadro_pergunta = pygame.Surface((900, 290), pygame.SRCALPHA, 32)  # cria um quadro onde serão exibidas as perguntas
-    quadro_pergunta = quadro_pergunta.convert_alpha()  # Converte a superficie quadro branco para transparente
-    bloco = pygame.Rect(5, 5, 900, 290)  # Função textWrap pede como paramentro
+    quadro_pergunta = pygame.Surface((900, 290), pygame.SRCALPHA, 32)
+    quadro_pergunta = quadro_pergunta.convert_alpha()
+    bloco = pygame.Rect(5, 5, 900, 290)
+
+    quadro_a = pygame.Surface((440, 100), pygame.SRCALPHA, 32)
+    quadro_a  = quadro_a.convert_alpha()
+    bloco_a = pygame.Rect(5, 5, 440, 100)
+
+    quadro_b = pygame.Surface((440, 100), pygame.SRCALPHA, 32)
+    quadro_b = quadro_b.convert_alpha()
+    bloco_b = pygame.Rect(5, 5, 440, 100)
+
+    quadro_c = pygame.Surface((440, 100), pygame.SRCALPHA, 32)
+    quadro_c = quadro_c.convert_alpha()
+    bloco_c = pygame.Rect(5, 5, 440, 100)
+
+    quadro_d = pygame.Surface((440, 100), pygame.SRCALPHA, 32)
+    quadro_d = quadro_d.convert_alpha()
+    bloco_d = pygame.Rect(5, 5, 440, 100)
     #
 
     resposta = ""
@@ -186,6 +203,7 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
             s_tam = 0
             tempo = Counter.tempoCorrido()
             ranking.atualizaRanking(nomeJogador, tempo[8:], pontos)
+            mus_jogo._stop()
             vitoria(1366, 768, nomeJogador, pts, Counter.tempoCorrido())
 
         for event in pygame.event.get():
@@ -216,6 +234,11 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
 
             screen.blit(q_gd_pergunta, ((twidth / 2) - 563, 130))
             screen.blit(quadro_pergunta, ((twidth / 2) - 510, 150))
+
+            screen.blit(quadro_a, (200, 300))
+            screen.blit(quadro_b, (700, 300))
+            screen.blit(quadro_c, (200, 350))
+            screen.blit(quadro_d, (700, 350))
 
             screen.blit(virus, (10, 10))
             screen.blit(virus_barra, (106, 30))
@@ -259,15 +282,24 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
 
             #print("Memoria", int(s_tam),"Contaminação", int(pontos_contaminacao))
             quebraLinha.drawText(quadro_pergunta, pergunta[0], preto, bloco, fonte_perguntas)
+            quebraLinha.drawText(quadro_a, pergunta[1], preto, bloco_a, fonte_perguntas)
+            quebraLinha.drawText(quadro_b, pergunta[2], preto, bloco_b, fonte_perguntas)
+            quebraLinha.drawText(quadro_c, pergunta[3], preto, bloco_c, fonte_perguntas)
+            quebraLinha.drawText(quadro_d, pergunta[4], preto, bloco_d, fonte_perguntas)
+
             if pergunta[6] in opcoes:
                 opcoes.remove(str(pergunta[6]))
             if resposta == pergunta[6]:
+                certa.play()
+                pygame.time.wait(500)
                 print("certa resposta")
                 contador += 1
                 pontos += int(pergunta[5])
                 jogo(1366, 768, nomeJogador, contador, pontos, pontos_contaminacao)
 
             if resposta in opcoes:
+                errada.play()
+                pygame.time.wait(500)
                 print('Errada')
                 contador += 1
                 s_tam += 43
@@ -283,13 +315,14 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
             s_tam = 0
             tempo = Counter.tempoCorrido()
             ranking.atualizaRanking(nomeJogador, tempo[8:], pontos)
+            mus_jogo._stop()
             gameOver(1366, 768, nomeJogador, pts, Counter.tempoCorrido())
 
         pygame.display.update()  # Atualiza os retangulos defindos
 
 
 def planMenu(twidth, theight, nomeJogador):
-    global screen, event, mus_menu, fps
+    global screen, event, mus_menu, fps, mus_jogo
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
 
@@ -339,6 +372,8 @@ def planMenu(twidth, theight, nomeJogador):
 
         pygame.display.update()  # Atualiza os retangulos defindos
     mus_menu._stop()
+    mus_jogo = threading.Thread(target=musicaFundo, args=('TRILHA/suspense.mp3',))
+    mus_jogo.start()
     jogo(1366, 768, nomeJogador, 0, 0, 0)
 
 
