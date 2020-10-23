@@ -18,8 +18,8 @@ global sangue_skin
 pygame.init()  # inicializa todos os modulos do pygame
 pygame.mixer.init() # inicia métodos de som
 
-fps = 6
-randon = aleatorio()
+fps = 10 # Frames do jogo
+randon = aleatorio() # Cria uma sequencia aletaoria para as perguntas seguirem em ordem aleatória
 s_tam = 0
 sangue_skin = pygame.Surface((0, 32))
 
@@ -39,13 +39,15 @@ op_c = pygame.image.load('SPRITES/c.png')
 op_d = pygame.image.load('SPRITES/d.png')
 virus = pygame.image.load('SPRITES/virus.png')
 virus_barra = pygame.image.load('SPRITES/virus-barra-pq.png')
+resposta_errada = pygame.image.load('SPRITES/resposta.png')
+resposta_certa = pygame.image.load('SPRITES/ranking.png')
 #
 
 # Fontes
 fonte_default = pygame.font.match_font('FreeSans')  # Encontra caminho absoluto fonte no SO
 fonte_dimis = pygame.font.match_font('Dimiss')  # Encontra caminho absoluto fonte no SO
 fonte_dimitri = pygame.font.match_font('Dimitri')  # Encontra caminho absoluto fonte no SO
-fonte_perguntas = pygame.font.Font('FONTES/Roboto/Roboto-Light.ttf', 28)
+fonte_perguntas = pygame.font.Font('FONTES/Roboto/Roboto-Bold.ttf', 28)
 fonte_ranking = pygame.font.Font(fonte_dimitri, 45)
 #fonte_dimis = pygame.font.Font('FONTES/Dimis/dimis.ttf', 30)
 #fonte_dimitri = pygame.font.Font('FONTES/Dimitri/dimitri.ttf', 30)
@@ -64,7 +66,7 @@ theight = 768
 
 clock = pygame.time.Clock()  # Cria um objeto que ajuda a controlar o tempo
 
-# Variáveis efeitos
+# Variáveis efeitos musica
 selecao = pygame.mixer.Sound('TRILHA/tiro.wav')
 certa = pygame.mixer.Sound('TRILHA/certa.wav')
 errada = pygame.mixer.Sound('TRILHA/no-no-no.wav')
@@ -98,22 +100,22 @@ def vitoria(twidth, theight, nomeJogador, pts, tempo):
 
         if event.type == MOUSEBUTTONDOWN:  # Pega o evento de clique no botão
             pos = pygame.mouse.get_pos()  # Pega a posição onde o mouse clica
-            #print(pos)
+            print(pos)
 
-            if 920 > pos[0] > 420 and 720 > pos[1] > 650:  # Testa se o clique foi no indicado
+            if 920 > pos[0] > 420 and 720 > pos[1] > 650:  # Testa se o clique foi no indicado (JOGAR NOVAMENTE)
                 saiGame = False
-                jogo(1366, 768, nomeJogador)
+                jogo(twidth, theight, nomeJogador, 0)
 
-            if 640 > pos[0] > 240 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado
+            if 640 > pos[0] > 240 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado (VOLTA TELA NOME)
                 saiGame = False
-                jogador(1366, 768, )
+                jogador(twidth, theight)
 
-            if 1120 > pos[0] > 730 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado
+            if 1120 > pos[0] > 730 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado (SAI DO JOGO)
                 pygame.quit()
                 sys.exit()
 
         screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
-        screen.blit(imgvitoria, (0, 0))
+        screen.blit(imgvitoria, (0, 0)) # tela do fundo
         screen.blit(exibeTexto(pts, 55, preto, fonte_dimitri), ((twidth / 2) - 210, 380))
         screen.blit(exibeTexto(tempo, 55, preto, fonte_dimitri), ((twidth / 2) - 210, 430))
         pygame.display.update()  # Atualiza os retangulos defindos
@@ -135,17 +137,17 @@ def gameOver(twidth, theight, nomeJogador, pts, tempo):
 
         if event.type == MOUSEBUTTONDOWN:  # Pega o evento de clique no botão
             pos = pygame.mouse.get_pos()  # Pega a posição onde o mouse clica
-            #print(pos)
+            print(pos)
 
-            if 920 > pos[0] > 420 and 720 > pos[1] > 650:  # Testa se o clique foi no indicado
+            if 920 > pos[0] > 420 and 720 > pos[1] > 650:  # Testa se o clique foi no indicado (JOGAR NOVAMENTE)
                 saiGame = False
-                jogo(1366, 768, nomeJogador)
+                jogo(twidth, theight, nomeJogador, 0)
 
-            if 640 > pos[0] > 240 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado
+            if 640 > pos[0] > 240 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado (VOLTA TELA NOME)
                 saiGame = False
-                jogador(1366, 768, )
+                jogador(twidth, theight)
 
-            if 1120 > pos[0] > 730 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado
+            if 1120 > pos[0] > 730 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado (SAI DO JOGO)
                 pygame.quit()
                 sys.exit()
 
@@ -158,11 +160,11 @@ def gameOver(twidth, theight, nomeJogador, pts, tempo):
 
 
 
-def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contaminacao = 0):
+def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contaminacao = 0, tempo = 0):
     import Counter
     global screen, event, fps, pts, s_tam, sangue_skin, mus_jogo
 
-    opcoes = ['A', 'B', 'C', 'D']
+    opcoes = ['A', 'B', 'C', 'D'] # Quando busca a pergunta no banco, retira a resposta certa do array para testar a errada
 
     # Sangue
     yp = 34
@@ -173,9 +175,9 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
 
     # tratamento quebra de linha
-    quadro_pergunta = pygame.Surface((900, 290), pygame.SRCALPHA, 32)
+    quadro_pergunta = pygame.Surface((1000, 290), pygame.SRCALPHA, 32)
     quadro_pergunta = quadro_pergunta.convert_alpha()
-    bloco = pygame.Rect(5, 5, 900, 290)
+    bloco = pygame.Rect(5, 5, 1000, 290)
 
     quadro_a = pygame.Surface((440, 100), pygame.SRCALPHA, 32)
     quadro_a  = quadro_a.convert_alpha()
@@ -198,10 +200,12 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
     while True:
         clock.tick(fps)  # Método tick() conta o tempo da ultima chamada serve para reduzir fps
 
-        if contador == len(randon):
+        if contador == (len(randon)): # testa se o jogo acabou
+            if pontos <= 50 : # se o jogo acabou menor que 50 pontos, gameOver
+                gameOver(twidth, theight, nomeJogador, pts, Counter.tempoCorrido())
             print("Vc ganhou")
             s_tam = 0
-            tempo = Counter.tempoCorrido()
+            tempo = Counter.tempoCorrido() # Inicia cronometro do jogo
             ranking.atualizaRanking(nomeJogador, tempo[8:], pontos)
             mus_jogo._stop()
             vitoria(1366, 768, nomeJogador, pts, Counter.tempoCorrido())
@@ -213,7 +217,7 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
 
         if event.type == MOUSEBUTTONDOWN:  # Pega o evento de clique no botão
             pos = pygame.mouse.get_pos()  # Pega a posição onde o mouse clica
-            pygame.time.wait(500)
+            #pygame.time.wait(500)
             #print(pos)
             opc_a = 320 > pos[0] > 120 and 600 > pos[1] > 500
             opc_b = 640 > pos[0] > 440 and 600 > pos[1] > 500
@@ -228,12 +232,12 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
             if opc_d:  # Testa se o clique foi no indicado
                 resposta = 'D'
 
-        if pontos_contaminacao < 101:  # testa se ainda tem pontos e exibe o jogo
+        if pontos_contaminacao < 100:  # testa se ainda tem pontos e exibe o jogo
             screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
             screen.blit(fundo_mapa, (0, 0))
 
-            screen.blit(q_gd_pergunta, ((twidth / 2) - 563, 130))
-            screen.blit(quadro_pergunta, ((twidth / 2) - 510, 150))
+            screen.blit(q_gd_pergunta, ((twidth / 2) - 613, 130))
+            screen.blit(quadro_pergunta, ((twidth / 2) - 560, 150))
 
             screen.blit(quadro_a, (200, 300))
             screen.blit(quadro_b, (700, 300))
@@ -280,43 +284,55 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
 
             pergunta = selecionaQuestao(randon[contador] * 7)
 
-            #print("Memoria", int(s_tam),"Contaminação", int(pontos_contaminacao))
             quebraLinha.drawText(quadro_pergunta, pergunta[0], preto, bloco, fonte_perguntas)
             quebraLinha.drawText(quadro_a, pergunta[1], preto, bloco_a, fonte_perguntas)
             quebraLinha.drawText(quadro_b, pergunta[2], preto, bloco_b, fonte_perguntas)
             quebraLinha.drawText(quadro_c, pergunta[3], preto, bloco_c, fonte_perguntas)
             quebraLinha.drawText(quadro_d, pergunta[4], preto, bloco_d, fonte_perguntas)
 
-            if pergunta[6] in opcoes:
-                opcoes.remove(str(pergunta[6]))
-            if resposta == pergunta[6]:
+            if pergunta[6] in opcoes: # Verifica se a resposta certa esta no array opções
+                opcoes.remove(str(pergunta[6])) # Remove a opção certa do arrat
+            if resposta == pergunta[6]: # Testa se a resposta escolhida é a certa
                 certa.play()
-                pygame.time.wait(500)
+                fecha_janela = 1
+                while fecha_janela:
+                    screen.blit(resposta_errada, ((twidth / 2) - 252, (theight/2) - 261))
+                    pygame.display.update()
+                    pygame.time.wait(1000)
+                    fecha_janela = 0
+
                 print("certa resposta")
                 contador += 1
                 pontos += int(pergunta[5])
-                jogo(1366, 768, nomeJogador, contador, pontos, pontos_contaminacao)
+                jogo(twidth, theight, nomeJogador, contador, pontos, pontos_contaminacao)
 
-            if resposta in opcoes:
+            if resposta in opcoes: # Testa se a opção escolhida esta nas opções após remover a resposta certa
                 errada.play()
-                pygame.time.wait(500)
+                fecha_janela = 1
+                while fecha_janela:
+                    screen.blit(resposta_errada, ((twidth / 2) - 252, (theight / 2) - 261))
+                    screen.blit(exibeTexto(pergunta[6], 200, preto, fonte_dimitri), ((twidth / 2)-30, (theight / 2)))
+                    pygame.display.update()
+                    pygame.time.wait(1000)
+                    fecha_janela = 0
+
                 print('Errada')
                 contador += 1
                 s_tam += 43
                 pontos_contaminacao += 10
 
                 pygame.display.update()
-                jogo(1366, 768, nomeJogador, contador, pontos, pontos_contaminacao)
+                jogo(twidth, theight, nomeJogador, contador, pontos, pontos_contaminacao)
 
             resposta = ""
-            #print(pontos_contaminacao)
+            print("pontos: ", pontos, "Contam: ", pontos_contaminacao, "Contador: ", contador, "Tam rand: ", len(randon), "Random: ", randon, pergunta[6])
 
         else:  # Apaga tudo e exibe o Game over
             s_tam = 0
             tempo = Counter.tempoCorrido()
             ranking.atualizaRanking(nomeJogador, tempo[8:], pontos)
             mus_jogo._stop()
-            gameOver(1366, 768, nomeJogador, pts, Counter.tempoCorrido())
+            gameOver(twidth, theight, nomeJogador, pts, Counter.tempoCorrido())
 
         pygame.display.update()  # Atualiza os retangulos defindos
 
@@ -344,16 +360,16 @@ def planMenu(twidth, theight, nomeJogador):
             pos = pygame.mouse.get_pos()  # Pega a posição onde o mouse clica
             #print(pos)
 
-            if 1200 > pos[0] > 800 and 450 > pos[1] > 380:  # Testa se o clique foi no indicado
+            if 1200 > pos[0] > 800 and 450 > pos[1] > 380:  # Testa se o clique foi no indicado (JOGAR)
                 selecao.play()
                 pygame.time.wait(500)
                 saiMenu = False
 
-            if 1200 > pos[0] > 800 and 560 > pos[1] > 480:  # Testa se o clique foi no indicado
+            if 1200 > pos[0] > 800 and 560 > pos[1] > 480:  # Testa se o clique foi no indicado (COMO JOGAR)
                 selecao.play()
                 webbrowser.open('https://github.com/carloslpsouza/ITHealth')
 
-            if 1200 > pos[0] > 800 and 680 > pos[1] > 600:  # Testa se o clique foi no indicado
+            if 1200 > pos[0] > 800 and 680 > pos[1] > 600:  # Testa se o clique foi no indicado (SOBRE O JOGO)
                 selecao.play()
                 webbrowser.open('https://github.com/carloslpsouza/ITHealth')
 
@@ -366,15 +382,16 @@ def planMenu(twidth, theight, nomeJogador):
             rankpts = rankingArray[indice]
             ranknome = rankingArray[indice + 1]
             ranktempo = rankingArray[indice + 2]
-            ranksai = str(ranknome[:-1] + "   " + rankpts[:-1] + "   " + ranktempo[:-1])
-            screen.blit(exibeTexto(ranksai, 45, preto, fonte_dimitri), ((twidth / 2) - 530, 300 + mem))
+            ranksai = str(rankpts[:-1] + "   " + ranktempo[:-1])
+            screen.blit(exibeTexto(ranknome[:-1], 45, preto, fonte_dimitri), ((twidth / 2) - 530, 300 + mem))
+            screen.blit(exibeTexto(ranksai, 45, preto, fonte_dimitri), ((twidth / 2) - 330, 300 + mem))
             mem += 100
 
         pygame.display.update()  # Atualiza os retangulos defindos
     mus_menu._stop()
     mus_jogo = threading.Thread(target=musicaFundo, args=('TRILHA/suspense.mp3',))
     mus_jogo.start()
-    jogo(1366, 768, nomeJogador, 0, 0, 0)
+    jogo(twidth, theight, nomeJogador, 0, 0, 0)
 
 
 def jogador(twidth, theight):
@@ -410,7 +427,7 @@ def jogador(twidth, theight):
 
         pygame.display.update()  # Atualiza os retangulos defindos
 
-    planMenu(1366, 768, nomeJogador)
+    planMenu(twidth, theight, nomeJogador)
 
 
 def entrada(twidth, theight):
@@ -430,7 +447,7 @@ def entrada(twidth, theight):
         pygame.display.update()  # Atualiza os retangulos defindos
         pygame.time.wait(2000)
         saiEntrada = False
-    jogador(1366, 768)
+    jogador(twidth, theight)
 
 
-entrada(1366,768)
+entrada(twidth, theight)
