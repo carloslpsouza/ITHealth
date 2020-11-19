@@ -39,4 +39,3 @@ def atualizaRanking(nomeJogador, tempo, pontos):
     #print(ranking)
 
 leRanking()
-#atualizaRanking('Arthur', '00:10:00', 81)

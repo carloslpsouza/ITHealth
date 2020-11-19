@@ -37,10 +37,14 @@ op_a = pygame.image.load('SPRITES/a.png')
 op_b = pygame.image.load('SPRITES/b.png')
 op_c = pygame.image.load('SPRITES/c.png')
 op_d = pygame.image.load('SPRITES/d.png')
-virus = pygame.image.load('SPRITES/virus.png')
-virus_barra = pygame.image.load('SPRITES/virus-barra-pq.png')
-resposta_errada = pygame.image.load('SPRITES/resposta.png')
-resposta_certa = pygame.image.load('SPRITES/ranking.png')
+virus = pygame.image.load('SPRITES/virus-contorno-branco.png')
+virus_barra = pygame.image.load('SPRITES/barra-sangue-contorno-branco.png')
+resposta_errada = pygame.image.load('SPRITES/resposta_errada.png')
+resposta_certa = pygame.image.load('SPRITES/resposta_certa.png')
+qdjogador = pygame.image.load('SPRITES/jogador-pontos.png')
+qdtimer = pygame.image.load('SPRITES/timer.png')
+logo = pygame.image.load('SPRITES/logo.png')
+ambulancia = pygame.image.load('SPRITES/ambulancia.png')
 #
 
 # Fontes
@@ -49,8 +53,6 @@ fonte_dimis = pygame.font.match_font('Dimiss')  # Encontra caminho absoluto font
 fonte_dimitri = pygame.font.match_font('Dimitri')  # Encontra caminho absoluto fonte no SO
 fonte_perguntas = pygame.font.Font('FONTES/Roboto/Roboto-Bold.ttf', 28)
 fonte_ranking = pygame.font.Font(fonte_dimitri, 45)
-#fonte_dimis = pygame.font.Font('FONTES/Dimis/dimis.ttf', 30)
-#fonte_dimitri = pygame.font.Font('FONTES/Dimitri/dimitri.ttf', 30)
 #
 
 # Variaveis de cores
@@ -69,13 +71,13 @@ clock = pygame.time.Clock()  # Cria um objeto que ajuda a controlar o tempo
 # Variáveis efeitos musica
 selecao = pygame.mixer.Sound('TRILHA/tiro.wav')
 certa = pygame.mixer.Sound('TRILHA/certa.wav')
-errada = pygame.mixer.Sound('TRILHA/no-no-no.wav')
+errada = pygame.mixer.Sound('TRILHA/errada.wav')
 #
 
 def musicaFundo(trilha):
     pygame.mixer.music.load(trilha)
     pygame.mixer.music.play(-1)
-    # pygame.mixer.music.set_volume(1)
+    pygame.mixer.music.set_volume(1)
 
 
 def exibeTexto(txt, tam_fonte, cor, fonte):  # função que facilita a rederização de texto na tela é so passar o texto e o tamanho
@@ -88,7 +90,8 @@ def vitoria(twidth, theight, nomeJogador, pts, tempo):
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
 
-    musicaFundo('TRILHA/redhot.mp3')
+    mus_jogo = threading.Thread(target=musicaFundo, args=('TRILHA/vitoria.wav',))
+    mus_jogo.start()
 
     saiGame = True
     while saiGame:
@@ -103,10 +106,12 @@ def vitoria(twidth, theight, nomeJogador, pts, tempo):
             print(pos)
 
             if 920 > pos[0] > 420 and 720 > pos[1] > 650:  # Testa se o clique foi no indicado (JOGAR NOVAMENTE)
+                mus_jogo._stop()
                 saiGame = False
-                jogo(twidth, theight, nomeJogador, 0)
+                jogo(twidth, theight, nomeJogador, 0, 0, 0, 0)
 
             if 640 > pos[0] > 240 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado (VOLTA TELA NOME)
+                mus_jogo._stop()
                 saiGame = False
                 jogador(twidth, theight)
 
@@ -125,7 +130,8 @@ def gameOver(twidth, theight, nomeJogador, pts, tempo):
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
 
-    musicaFundo('TRILHA/sad.wav')
+    mus_jogo = threading.Thread(target=musicaFundo, args=('TRILHA/derrota.wav',))
+    mus_jogo.start()
 
     saiGame = True
     while saiGame:
@@ -141,10 +147,12 @@ def gameOver(twidth, theight, nomeJogador, pts, tempo):
 
             if 920 > pos[0] > 420 and 720 > pos[1] > 650:  # Testa se o clique foi no indicado (JOGAR NOVAMENTE)
                 saiGame = False
-                jogo(twidth, theight, nomeJogador, 0)
+                mus_jogo._stop()
+                jogo(twidth, theight, nomeJogador, 0, 0, 0, 0)
 
             if 640 > pos[0] > 240 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado (VOLTA TELA NOME)
                 saiGame = False
+                mus_jogo._stop()
                 jogador(twidth, theight)
 
             if 1120 > pos[0] > 730 and 620 > pos[1] > 530:  # Testa se o clique foi no indicado (SAI DO JOGO)
@@ -168,7 +176,7 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
 
     # Sangue
     yp = 34
-    s_ini = 110
+    s_ini = 80
     #
 
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
@@ -244,9 +252,7 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
             screen.blit(quadro_c, (200, 350))
             screen.blit(quadro_d, (700, 350))
 
-            screen.blit(virus, (10, 10))
-            screen.blit(virus_barra, (106, 30))
-
+            screen.blit(virus_barra, (s_ini - 4, 30))
             sangue_skin = pygame.Surface((s_tam, 32))
 
             if pontos_contaminacao <= 20:
@@ -267,15 +273,17 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
                 sangue_skin.fill((255, 0, 0))  # cor do bloco
 
             screen.blit(sangue_skin, (s_ini, yp))
+            screen.blit(virus, (10, 10))
 
+            screen.blit(qdtimer, ((twidth / 2) - 150, 10))
+            tempo = Counter.tempoCorrido()
+            screen.blit(exibeTexto(tempo[6:], 60, preto, fonte_dimitri), ((twidth / 2) - 150, 20))
 
-            screen.blit(exibeTexto(Counter.tempoCorrido(), 25, amarelo, fonte_dimitri), ((twidth / 2) - 100, 10))
-
-            screen.blit(exibeTexto("Jogador   ", 25, amarelo, fonte_dimitri), (twidth - 200, 10))
-            screen.blit(exibeTexto(nomeJogador, 25, amarelo, fonte_dimitri), (twidth - 100, 10))
-
+            screen.blit(qdjogador, (twidth - 260, 10))
+            #screen.blit(exibeTexto("Jogador   ", 25, amarelo, fonte_dimitri), (twidth - 200, 10))
+            screen.blit(exibeTexto(nomeJogador, 40, preto, fonte_dimitri), (twidth - 230, 15))
             pts = ("Pontos " + str(pontos))
-            screen.blit(exibeTexto(pts, 25, amarelo, fonte_dimitri), (twidth - 200, 50))
+            screen.blit(exibeTexto(pts, 40, preto, fonte_dimitri), (twidth - 230, 50))
 
             screen.blit(op_a, (120, 500))
             screen.blit(op_b, (440, 500))
@@ -296,7 +304,7 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
                 certa.play()
                 fecha_janela = 1
                 while fecha_janela:
-                    screen.blit(resposta_errada, ((twidth / 2) - 252, (theight/2) - 261))
+                    screen.blit(resposta_certa, ((twidth / 2) - 482, (theight/2) - 261))
                     pygame.display.update()
                     pygame.time.wait(1000)
                     fecha_janela = 0
@@ -310,7 +318,7 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
                 errada.play()
                 fecha_janela = 1
                 while fecha_janela:
-                    screen.blit(resposta_errada, ((twidth / 2) - 252, (theight / 2) - 261))
+                    screen.blit(resposta_errada, ((twidth / 2) - 482, (theight / 2) - 261))
                     screen.blit(exibeTexto(pergunta[6], 200, preto, fonte_dimitri), ((twidth / 2)-30, (theight / 2)))
                     pygame.display.update()
                     pygame.time.wait(1000)
@@ -344,8 +352,8 @@ def planMenu(twidth, theight, nomeJogador):
 
     #quadro ranking
     quadro_ranking = pygame.Surface((200, 290), pygame.SRCALPHA, 32)
-    quadro_ranking = quadro_ranking.convert_alpha()
-    bloco_ranking = pygame.Rect(5, 5, 200, 290)
+    #quadro_ranking = quadro_ranking.convert_alpha()
+    #bloco_ranking = pygame.Rect(5, 5, 200, 290)
     #
 
     saiMenu = True
@@ -389,14 +397,14 @@ def planMenu(twidth, theight, nomeJogador):
 
         pygame.display.update()  # Atualiza os retangulos defindos
     mus_menu._stop()
-    mus_jogo = threading.Thread(target=musicaFundo, args=('TRILHA/suspense.mp3',))
+    mus_jogo = threading.Thread(target=musicaFundo, args=('TRILHA/fundo-jogo.wav',))
     mus_jogo.start()
     jogo(twidth, theight, nomeJogador, 0, 0, 0)
 
 
 def jogador(twidth, theight):
     global screen, event, mus_menu, fps
-    mus_menu = threading.Thread(target=musicaFundo, args=('TRILHA/awesomeness.wav', ))
+    mus_menu = threading.Thread(target=musicaFundo, args=('TRILHA/menu.wav', ))
     mus_menu.start()
     screen = pygame.display.set_mode((twidth, theight))  # Define o tamanho da janela
     pygame.display.set_caption('QuizDemic')  # Exibe o titulo na janela
@@ -450,4 +458,30 @@ def entrada(twidth, theight):
     jogador(twidth, theight)
 
 
-entrada(twidth, theight)
+def introducao(twidth, theight):
+    global screen, event, fps
+    screen = pygame.display.set_mode((twidth, theight))
+    pygame.display.set_caption('QuizDemic')
+    saiEntrada = True
+    while saiEntrada:
+        clock.tick(fps)
+        for event in pygame.event.get():
+            if event.type == quit:
+                pygame.quit()
+                sys.exit()
+
+        screen.fill(preto)
+        for i in range(14):
+            screen.fill(branco)
+            if i >= 7:
+                screen.blit(logo, ((twidth / 2) - 150, (theight / 2) - 200))
+            if i == 0:
+                screen.blit(ambulancia, (-100, (theight / 2) - 200))
+            screen.blit(ambulancia, ((100 * (i)), (theight / 2) - 200))
+            pygame.time.wait(45)
+            pygame.display.update()
+        pygame.time.wait(750)
+        saiEntrada = False
+        entrada(1366,768)
+
+introducao(twidth, theight)

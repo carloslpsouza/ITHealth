@@ -31,24 +31,3 @@ def aleatorio():
         n = randint(0,qtds_perguntas-1)
       aleatorio.append(n)
     return aleatorio
-
-def devolveQuestao():
-    global qtds_perguntas, qtds_linhas
-    aleatorio()
-    rpts = 0
-    while rpts < qtds_perguntas:
-       sorteio = aleatorio[rpts]
-
-       var = selecionaQuestao((sorteio * 7))
-
-
-def confereResposta():
-    for i in var:
-        print(i)
-    resp = input("Digite sua resposta: ")
-    if resp == var[6]:
-        print("Certa resposta!")
-    else:
-        print("Resposta errada")
-    rpts += 1
-    return var[0]
