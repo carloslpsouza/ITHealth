@@ -69,6 +69,7 @@ theight = 768
 clock = pygame.time.Clock()  # Cria um objeto que ajuda a controlar o tempo
 
 # Variáveis efeitos musica
+intro = pygame.mixer.Sound('TRILHA/efeitointro.wav')
 selecao = pygame.mixer.Sound('TRILHA/tiro.wav')
 certa = pygame.mixer.Sound('TRILHA/certa.wav')
 errada = pygame.mixer.Sound('TRILHA/errada.wav')
@@ -185,7 +186,7 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
     # tratamento quebra de linha
     quadro_pergunta = pygame.Surface((1000, 290), pygame.SRCALPHA, 32)
     quadro_pergunta = quadro_pergunta.convert_alpha()
-    bloco = pygame.Rect(5, 5, 1000, 290)
+    bloco = pygame.Rect(5, 5, 940, 290)
 
     quadro_a = pygame.Surface((440, 100), pygame.SRCALPHA, 32)
     quadro_a  = quadro_a.convert_alpha()
@@ -244,8 +245,10 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
             screen.fill(preto)  # apaga a tela para impressão de movimento, preenchendo toda tela de preto (Tem q vir primeiro)
             screen.blit(fundo_mapa, (0, 0))
 
-            screen.blit(q_gd_pergunta, ((twidth / 2) - 613, 130))
-            screen.blit(quadro_pergunta, ((twidth / 2) - 560, 150))
+            #screen.blit(q_gd_pergunta, ((twidth / 2) - 613, 130))
+            #screen.blit(quadro_pergunta, ((twidth / 2) - 560, 150))
+            screen.blit(q_gd_pergunta, ((twidth / 2) - 563, 130))
+            screen.blit(quadro_pergunta, ((twidth / 2) - 540, 150))
 
             screen.blit(quadro_a, (200, 300))
             screen.blit(quadro_b, (700, 300))
@@ -319,7 +322,15 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
                 fecha_janela = 1
                 while fecha_janela:
                     screen.blit(resposta_errada, ((twidth / 2) - 482, (theight / 2) - 261))
-                    screen.blit(exibeTexto(pergunta[6], 200, preto, fonte_dimitri), ((twidth / 2)-30, (theight / 2)))
+                    #screen.blit(exibeTexto(pergunta[6], 200, preto, fonte_dimitri), ((twidth / 2)-30, (theight / 2)))
+                    if pergunta[6] == 'A':
+                        screen.blit(exibeTexto(pergunta[1], 50, preto, fonte_default),((twidth / 2) - (len(pergunta[1])//2)*20, (theight / 2)))
+                    if pergunta[6] == 'B':
+                        screen.blit(exibeTexto(pergunta[2], 50, preto, fonte_default),((twidth / 2) - (len(pergunta[2])//2)*20, (theight / 2)))
+                    if pergunta[6] == 'C':
+                        screen.blit(exibeTexto(pergunta[3], 50, preto, fonte_default),((twidth / 2) - (len(pergunta[3])//2)*20, (theight / 2)))
+                    if pergunta[6] == 'D':
+                        screen.blit(exibeTexto(pergunta[4], 50, preto, fonte_default),((twidth / 2) - (len(pergunta[4])//2)*20, (theight / 2)))
                     pygame.display.update()
                     pygame.time.wait(1000)
                     fecha_janela = 0
@@ -333,7 +344,8 @@ def jogo(twidth, theight, nomeJogador, contador = 0, pontos = 0, pontos_contamin
                 jogo(twidth, theight, nomeJogador, contador, pontos, pontos_contaminacao)
 
             resposta = ""
-            print("pontos: ", pontos, "Contam: ", pontos_contaminacao, "Contador: ", contador, "Tam rand: ", len(randon), "Random: ", randon, pergunta[6])
+
+            #print("pontos: ", pontos, "Contam: ", pontos_contaminacao, "Contador: ", contador, "Tam rand: ", len(randon), "Random: ", randon, pergunta[6])
 
         else:  # Apaga tudo e exibe o Game over
             s_tam = 0
@@ -458,6 +470,7 @@ def entrada(twidth, theight):
     jogador(twidth, theight)
 
 
+
 def introducao(twidth, theight):
     global screen, event, fps
     screen = pygame.display.set_mode((twidth, theight))
@@ -471,10 +484,14 @@ def introducao(twidth, theight):
                 sys.exit()
 
         screen.fill(preto)
+        toca = 0
         for i in range(14):
             screen.fill(branco)
             if i >= 7:
-                screen.blit(logo, ((twidth / 2) - 150, (theight / 2) - 200))
+                screen.blit(logo, ((twidth / 2) - 210, (theight / 2) - 200))
+                if (toca == 0):
+                    intro.play()
+                    toca = 1
             if i == 0:
                 screen.blit(ambulancia, (-100, (theight / 2) - 200))
             screen.blit(ambulancia, ((100 * (i)), (theight / 2) - 200))
@@ -482,6 +499,6 @@ def introducao(twidth, theight):
             pygame.display.update()
         pygame.time.wait(750)
         saiEntrada = False
-        entrada(1366,768)
+        entrada(twidth, theight)
 
 introducao(twidth, theight)
