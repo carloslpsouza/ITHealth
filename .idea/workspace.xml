@@ -18,7 +18,7 @@
         <entry file="file://$PROJECT_DIR$/gui.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="219">
-              <caret line="332" column="126" selection-start-line="332" selection-start-column="126" selection-end-line="332" selection-end-column="126" />
+              <caret line="332" column="125" selection-start-line="332" selection-start-column="125" selection-end-line="332" selection-end-column="125" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -203,7 +203,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="-1" width="1368" height="716" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.12360387" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -304,7 +303,7 @@
     <entry file="file://$PROJECT_DIR$/gui.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="219">
-          <caret line="332" column="126" selection-start-line="332" selection-start-column="126" selection-end-line="332" selection-end-column="126" />
+          <caret line="332" column="125" selection-start-line="332" selection-start-column="125" selection-end-line="332" selection-end-column="125" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
