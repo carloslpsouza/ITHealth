@@ -11,7 +11,7 @@ Para rodar nosso jogo é necessário que se tenha instalado no computador, Pytho
 # Instalação Python
 Por favor, siga o tutorial: https://wiki.python.org/moin/BeginnersGuide/Download
 
-#Instalação pygame
+# Instalação pygame
 Abrir o terminal ou prompt de comando e digitar o comando: python3 -m pip install -U pygame --user. Para maiores informações sobre o pygame, consulte https://www.pygame.org/wiki/GettingStarted
 
 Com o python instalado e o pygame, para rodar o jogo, clonar o repositorio: https://github.com/carloslpsouza/ITHealth, entrar na pasta através do terminal ou do prompt de comando e digitar o seguinte comando python gui.py
